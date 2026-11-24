@@ -1,9 +1,11 @@
 /* Paint the image behind the open conversation when a custom wallpaper is active */
 #main[data-wa-custom-wallpaper="active"] {
-  background-image: var(--wa-custom-wallpaper) !important;
-  background-size: var(--wa-custom-wallpaper-size, cover) !important;
-  background-position: center !important;
-  background-repeat: var(--wa-custom-wallpaper-repeat, no-repeat) !important;
+  background-color: #0b141a !important;
+}
+
+/* Make intermediate chat wrappers transparent so the custom wallpaper isn't dimmed */
+#main[data-wa-custom-wallpaper="active"] [data-wa-cw-transparent-bg="1"] {
+  background-color: transparent !important;
 }
 
 /* Hide WhatsApp's own doodle/colour layer only when a custom wallpaper is active */
@@ -11,7 +13,9 @@
 #main[data-wa-custom-wallpaper="active"] [data-asset-chat-background-dark],
 #main[data-wa-custom-wallpaper="active"] [data-asset-chat-background-light]::before,
 #main[data-wa-custom-wallpaper="active"] [data-asset-chat-background-dark]::before,
-#main[data-wa-custom-wallpaper="active"] [data-wa-cw-hidden-bg="1"] {
+#main[data-wa-custom-wallpaper="active"] [data-wa-cw-hidden-bg="1"],
+#main[data-wa-custom-wallpaper="active"] [data-wa-cw-hidden-bg="1"]::before,
+#main[data-wa-custom-wallpaper="active"] [data-wa-cw-hidden-bg="1"]::after {
   display: none !important;
   background-image: none !important;
   background-color: transparent !important;
