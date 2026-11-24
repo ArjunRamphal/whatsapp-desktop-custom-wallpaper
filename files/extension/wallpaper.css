@@ -1,8 +1,9 @@
 /* Paint the image behind the open conversation when a custom wallpaper is active */
 #main[data-wa-custom-wallpaper="active"] {
   background-image: var(--wa-custom-wallpaper) !important;
-  background-size: cover !important;
+  background-size: var(--wa-custom-wallpaper-size, cover) !important;
   background-position: center !important;
+  background-repeat: var(--wa-custom-wallpaper-repeat, no-repeat) !important;
 }
 
 /* Hide WhatsApp's own doodle/colour layer only when a custom wallpaper is active */
@@ -18,21 +19,24 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  margin-right: 4px;
+  justify-content: center;
+  align-self: center;
+  flex-shrink: 0;
 }
 
 .wa-cw-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   border: none;
   border-radius: 50%;
   background: transparent;
   color: inherit;
   cursor: pointer;
-  opacity: 0.75;
+  opacity: 0.78;
   transition: background-color 0.15s ease, opacity 0.15s ease;
 }
 
@@ -85,4 +89,39 @@
 
 .wa-cw-menu button.wa-cw-danger {
   color: #f15c6d;
+}
+
+.wa-cw-fit-section {
+  padding: 8px 14px 6px;
+  border-top: 1px solid rgba(134, 150, 160, 0.2);
+}
+
+.wa-cw-fit-label {
+  font-size: 11px;
+  color: #8696a0;
+  margin-bottom: 6px;
+}
+
+.wa-cw-fit-row {
+  display: flex;
+  gap: 4px;
+}
+
+.wa-cw-fit-row button.wa-cw-fit-opt {
+  flex: 1;
+  padding: 5px 6px;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.wa-cw-fit-row button.wa-cw-fit-opt:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.wa-cw-fit-row button.wa-cw-fit-opt.wa-cw-active {
+  background: #00a884;
+  color: #111b21;
+  font-weight: 600;
 }

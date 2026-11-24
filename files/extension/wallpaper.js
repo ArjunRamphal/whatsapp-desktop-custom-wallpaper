@@ -3,9 +3,15 @@
 
   const STORAGE_KEY = 'waCustomWallpapers';
   const BTN_WRAP_ID = 'wa-cw-header-wrap';
+  const FIT_MODES = {
+    cover: { label: 'Fill', size: 'cover', repeat: 'no-repeat' },
+    contain: { label: 'Fit', size: 'contain', repeat: 'no-repeat' },
+    stretch: { label: 'Stretch', size: '100% 100%', repeat: 'no-repeat' },
+    tile: { label: 'Tile', size: 'auto', repeat: 'repeat' }
+  };
 
   let fileConfig = { default: null, contacts: {} };
-  let storedConfig = { default: undefined, contacts: {} };
+  let storedConfig = { default: undefined, contacts: {}, fitMode: 'cover' };
   let activeMenu = null;
   let rafPending = false;
 
@@ -82,11 +88,16 @@
     const url = resolveWallpaperUrl(chatName);
 
     if (url) {
+      const fit = FIT_MODES[storedConfig.fitMode] || FIT_MODES.cover;
       main.setAttribute('data-wa-custom-wallpaper', 'active');
       main.style.setProperty('--wa-custom-wallpaper', `url("${url}")`);
+      main.style.setProperty('--wa-custom-wallpaper-size', fit.size);
+      main.style.setProperty('--wa-custom-wallpaper-repeat', fit.repeat);
     } else {
       main.removeAttribute('data-wa-custom-wallpaper');
       main.style.removeProperty('--wa-custom-wallpaper');
+      main.style.removeProperty('--wa-custom-wallpaper-size');
+      main.style.removeProperty('--wa-custom-wallpaper-repeat');
     }
   }
 
@@ -206,6 +217,36 @@
       );
     }
 
+    const fitSection = document.createElement('div');
+    fitSection.className = 'wa-cw-fit-section';
+
+    const fitLabel = document.createElement('div');
+    fitLabel.className = 'wa-cw-fit-label';
+    fitLabel.textContent = 'Wallpaper fit';
+    fitSection.appendChild(fitLabel);
+
+    const fitRow = document.createElement('div');
+    fitRow.className = 'wa-cw-fit-row';
+    const currentFit = FIT_MODES[storedConfig.fitMode] ? storedConfig.fitMode : 'cover';
+
+    for (const [modeKey, modeInfo] of Object.entries(FIT_MODES)) {
+      const fitBtn = document.createElement('button');
+      fitBtn.type = 'button';
+      fitBtn.className = 'wa-cw-fit-opt' + (modeKey === currentFit ? ' wa-cw-active' : '');
+      fitBtn.textContent = modeInfo.label;
+      fitBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        storedConfig.fitMode = modeKey;
+        await saveStoredConfig();
+        applyWallpaper();
+        closeMenu();
+      });
+      fitRow.appendChild(fitBtn);
+    }
+
+    fitSection.appendChild(fitRow);
+    menu.appendChild(fitSection);
+
     wrap.appendChild(menu);
     activeMenu = menu;
   }
@@ -226,6 +267,31 @@
     );
     svg.appendChild(path);
     return svg;
+  }
+
+  function findHeaderActionRow(header) {
+    const buttons = header.querySelectorAll('button, [role="button"]');
+    const lastBtn = buttons[buttons.length - 1];
+    if (lastBtn) {
+      let node = lastBtn;
+      while (node && node.parentElement && node.parentElement !== header) {
+        const parent = node.parentElement;
+        const style = window.getComputedStyle(parent);
+        if (
+          style.display.includes('flex') &&
+          style.flexDirection !== 'column' &&
+          parent.querySelectorAll('button, [role="button"]').length >= 2
+        ) {
+          return { container: parent, before: parent.firstElementChild };
+        }
+        node = parent;
+      }
+    }
+    const actionArea = header.lastElementChild;
+    if (actionArea && actionArea !== header.firstElementChild) {
+      return { container: actionArea, before: actionArea.firstElementChild };
+    }
+    return { container: header, before: null };
   }
 
   function ensureHeaderButton() {
@@ -249,13 +315,8 @@
 
     wrap.appendChild(btn);
 
-    // Place next to the right-side header action buttons when available
-    const actionArea = header.lastElementChild;
-    if (actionArea && actionArea !== header.firstElementChild) {
-      actionArea.prepend(wrap);
-    } else {
-      header.appendChild(wrap);
-    }
+    const target = findHeaderActionRow(header);
+    target.container.insertBefore(wrap, target.before);
   }
 
   function scheduleSync() {
@@ -290,7 +351,8 @@
         if (saved && typeof saved === 'object') {
           storedConfig = {
             default: saved.default,
-            contacts: saved.contacts && typeof saved.contacts === 'object' ? saved.contacts : {}
+            contacts: saved.contacts && typeof saved.contacts === 'object' ? saved.contacts : {},
+            fitMode: FIT_MODES[saved.fitMode] ? saved.fitMode : 'cover'
           };
         }
         resolve();
