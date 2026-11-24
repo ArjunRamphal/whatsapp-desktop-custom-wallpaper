@@ -18,7 +18,19 @@ WhatsApp itself is **not modified**. Modern WhatsApp Desktop is WhatsApp Web run
 - WhatsApp Desktop from the Microsoft Store
 - A Windows account with administrator rights (asked for once, during install)
 
-## Easy install
+## Zero-Admin / Zero-Registry Option (Edge or Chrome App)
+
+If you prefer **no administrator privileges and no registry changes at all**, you can run WhatsApp Web as a standalone desktop app (PWA) in Microsoft Edge or Google Chrome and load the extension directly:
+
+1. Open `edge://extensions` (or `chrome://extensions`) and enable **Developer mode**.
+2. Click **Load unpacked** and select the `files/extension` folder from this repository.
+3. Open [web.whatsapp.com](https://web.whatsapp.com), click the **Install app** icon in the address bar (or browser menu → **Apps → Install this site as an app**).
+4. Open any chat and click the **wallpaper icon** in the chat header to set per-contact or default wallpapers.
+
+> **Why does the Microsoft Store app (`WhatsApp.Root.exe`) still require admin + a registry key?**
+> Windows restricts `HKCU\Software\Policies\...` to administrators, and Microsoft Store (MSIX) apps cannot receive per-app command-line flags via a simple shortcut or process-only environment variable. The alternative `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS` user environment variable still writes to `HKCU\Environment` in the registry and affects *all* WebView2 apps on your PC rather than just WhatsApp.
+
+## Easy install (Microsoft Store WhatsApp Desktop)
 
 1. Download or clone this repository.
 2. **Right-click `Install.cmd` → Run as administrator** and click **Yes**.
