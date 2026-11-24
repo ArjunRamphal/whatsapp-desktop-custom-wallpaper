@@ -129,6 +129,16 @@
     }
   }
 
+  function getWallpaperTarget(main) {
+    for (const child of main.children) {
+      if (child.tagName === 'HEADER' || child.tagName === 'FOOTER') continue;
+      if (child.querySelector('[role="row"], [role="application"], [data-testid="conversation-panel-messages"]')) {
+        return child;
+      }
+    }
+    return main;
+  }
+
   function clearBgStyles(el) {
     if (!el) return;
     el.style.removeProperty('background-image');
@@ -143,18 +153,21 @@
 
     const chatName = getActiveChatName();
     const url = resolveWallpaperUrl(chatName);
+    const target = getWallpaperTarget(main);
 
     if (url) {
       const fit = FIT_MODES[storedConfig.fitMode] || FIT_MODES.cover;
+      if (target !== main) clearBgStyles(main);
       main.setAttribute('data-wa-custom-wallpaper', 'active');
-      main.style.setProperty('background-image', `url("${url}")`, 'important');
-      main.style.setProperty('background-size', fit.size, 'important');
-      main.style.setProperty('background-repeat', fit.repeat, 'important');
-      main.style.setProperty('background-position', 'center', 'important');
+      target.style.setProperty('background-image', `url("${url}")`, 'important');
+      target.style.setProperty('background-size', fit.size, 'important');
+      target.style.setProperty('background-repeat', fit.repeat, 'important');
+      target.style.setProperty('background-position', 'center', 'important');
       syncDoodleLayerVisibility(main, true);
     } else {
       main.removeAttribute('data-wa-custom-wallpaper');
       clearBgStyles(main);
+      if (target !== main) clearBgStyles(target);
       syncDoodleLayerVisibility(main, false);
     }
   }
