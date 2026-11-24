@@ -247,7 +247,11 @@
     fitSection.appendChild(fitRow);
     menu.appendChild(fitSection);
 
-    wrap.appendChild(menu);
+    const rect = wrap.getBoundingClientRect();
+    menu.style.top = `${Math.round(rect.bottom + 6)}px`;
+    menu.style.right = `${Math.max(8, Math.round(window.innerWidth - rect.right))}px`;
+
+    document.body.appendChild(menu);
     activeMenu = menu;
   }
 
@@ -364,7 +368,9 @@
     await loadConfigs();
 
     document.addEventListener('click', (e) => {
-      if (activeMenu && !activeMenu.parentElement?.contains(e.target)) {
+      if (!activeMenu) return;
+      const wrap = document.getElementById(BTN_WRAP_ID);
+      if (!activeMenu.contains(e.target) && !wrap?.contains(e.target)) {
         closeMenu();
       }
     });
