@@ -1,18 +1,24 @@
 {
   "manifest_version": 3,
   "name": "WhatsApp Custom Wallpaper",
-  "version": "1.0",
-  "description": "Replaces the chat background with wallpaper.jpg from this folder.",
+  "version": "1.1",
+  "description": "Set custom chat wallpapers globally or per contact/group in WhatsApp Desktop.",
+  "permissions": ["storage", "unlimitedStorage"],
   "content_scripts": [
     {
       "matches": ["https://web.whatsapp.com/*"],
       "css": ["wallpaper.css"],
       "run_at": "document_start"
+    },
+    {
+      "matches": ["https://web.whatsapp.com/*"],
+      "js": ["wallpaper.js"],
+      "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["wallpaper.jpg"],
+      "resources": ["config.json", "wallpaper.jpg", "wallpapers/*"],
       "matches": ["https://web.whatsapp.com/*"]
     }
   ]

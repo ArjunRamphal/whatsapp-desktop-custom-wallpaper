@@ -1,14 +1,88 @@
-/* Paint the image behind the open conversation */
-#main {
-  background-image: url("chrome-extension://__MSG_@@extension_id__/wallpaper.jpg") !important;
+/* Paint the image behind the open conversation when a custom wallpaper is active */
+#main[data-wa-custom-wallpaper="active"] {
+  background-image: var(--wa-custom-wallpaper) !important;
   background-size: cover !important;
   background-position: center !important;
 }
 
-/* Hide WhatsApp's own doodle/colour layer so the image shows through */
-#main [data-asset-chat-background-light],
-#main [data-asset-chat-background-dark] {
+/* Hide WhatsApp's own doodle/colour layer only when a custom wallpaper is active */
+#main[data-wa-custom-wallpaper="active"] [data-asset-chat-background-light],
+#main[data-wa-custom-wallpaper="active"] [data-asset-chat-background-dark] {
   background-image: none !important;
   background-color: transparent !important;
   opacity: 0 !important;
+}
+
+/* In-chat wallpaper button & popover */
+.wa-cw-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-right: 4px;
+}
+
+.wa-cw-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.75;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.wa-cw-btn:hover {
+  background-color: rgba(128, 128, 128, 0.15);
+  opacity: 1;
+}
+
+.wa-cw-menu {
+  position: absolute;
+  top: 42px;
+  right: 0;
+  z-index: 9999;
+  min-width: 230px;
+  padding: 6px 0;
+  border-radius: 8px;
+  background: #233138;
+  color: #e9edef;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.wa-cw-menu-title {
+  padding: 6px 14px;
+  font-size: 11px;
+  color: #8696a0;
+  border-bottom: 1px solid rgba(134, 150, 160, 0.2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+}
+
+.wa-cw-menu button {
+  display: block;
+  width: 100%;
+  padding: 9px 14px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.wa-cw-menu button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.wa-cw-menu button.wa-cw-danger {
+  color: #f15c6d;
 }

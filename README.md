@@ -1,10 +1,16 @@
 # Custom wallpaper for WhatsApp Desktop
 
-Use **any image** as the chat background in WhatsApp Desktop for Windows. The official app only lets you choose from its built-in colors and patterns.
+Use **any image** as the chat background in WhatsApp Desktop for Windows—either globally for all chats or **per individual contact / group**. The official app only lets you choose from its built-in colors and patterns.
 
 > Not affiliated with, endorsed by, or connected to WhatsApp or Meta in any way.
 
-WhatsApp itself is **not modified**. Modern WhatsApp Desktop is WhatsApp Web running inside Microsoft's embedded Edge browser (WebView2). This mod is a tiny browser extension (one CSS file) that the embedded browser is told to load.
+WhatsApp itself is **not modified**. Modern WhatsApp Desktop is WhatsApp Web running inside Microsoft's embedded Edge browser (WebView2). This mod is a tiny browser extension that the embedded browser is told to load.
+
+## Features
+
+- **Per-contact / per-group wallpapers:** Click the wallpaper icon in any chat's header inside WhatsApp to set or remove a wallpaper for that specific conversation.
+- **Global default wallpaper:** Optionally set a fallback wallpaper for all other chats.
+- **Installer or in-app UI:** Configure wallpapers directly inside WhatsApp without re-running the installer, or pass `-Contact` / `-Image` to `files/install.ps1`.
 
 ## Requirements
 
@@ -14,12 +20,12 @@ WhatsApp itself is **not modified**. Modern WhatsApp Desktop is WhatsApp Web run
 
 ## Easy install
 
-1. Download `WhatsAppWallpaper-mod.zip` from the [latest release](../../releases/latest) and unzip it anywhere.
+1. Download or clone this repository.
 2. **Right-click `Install.cmd` → Run as administrator** and click **Yes**.
-3. Pick your image in the window that opens.
-4. WhatsApp restarts. Open any chat and enjoy your wallpaper.
+3. Choose whether to set a **default wallpaper for all chats**, a **specific contact/group**, or **skip** and pick wallpapers directly inside WhatsApp.
+4. WhatsApp restarts. Open any chat and click the **wallpaper icon** in the chat header to set or remove a wallpaper for that specific chat.
 
-**Change the image:** run `Install.cmd` again the same way and pick a new one.
+**Change or add another contact:** click the wallpaper icon inside any WhatsApp chat, or run `Install.cmd` again.
 **Remove it:** right-click **`Uninstall.cmd`** → Run as administrator.
 
 > **"Smart App Control blocked..."**: Windows 11's Smart App Control blocks unsigned scripts when you double-click them. Use right-click → **Run as administrator** as shown above. If it's still blocked, use the [manual install](#manual-install) below; it's just copying files and pasting one command.
@@ -50,7 +56,8 @@ Remove-ItemProperty 'HKCU:\Software\Policies\Microsoft\Edge\WebView2\AdditionalB
 
 - WebView2 reads a per-app registry policy, `AdditionalBrowserArguments`, and adds those flags when it launches. The installer adds `--load-extension` for `WhatsApp.Root.exe` only, so no other app is affected.
 - **Why admin?** Windows only lets administrators write under `HKCU\Software\Policies`. That registry write is the only thing that needs it.
-- The extension ([`wallpaper.css`](files/extension/wallpaper.css)) places your image behind the open chat and hides WhatsApp's default pattern. It only runs on `web.whatsapp.com`, asks for no permissions, and contains no JavaScript.
+- The extension ([`wallpaper.css`](files/extension/wallpaper.css) and [`wallpaper.js`](files/extension/wallpaper.js)) watches the active chat header on `web.whatsapp.com`, applies any contact-specific wallpaper (falling back to the default wallpaper if set), and adds a wallpaper picker button to the chat header.
+- It only runs on `web.whatsapp.com`, only requests `storage` and `unlimitedStorage` permissions (to save your chosen images locally in the browser), and sends nothing over the network.
 - No debugging ports, no patched files, nothing sent anywhere.
 
 ## Troubleshooting
