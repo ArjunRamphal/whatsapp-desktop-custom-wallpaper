@@ -3,9 +3,11 @@
   background-color: #0b141a !important;
 }
 
-/* Make intermediate chat wrappers transparent so the custom wallpaper isn't dimmed */
-#main[data-wa-custom-wallpaper="active"] [data-wa-cw-transparent-bg="1"] {
+/* Make intermediate chat wrappers and outer footer transparent so the wallpaper continues behind the input bar */
+#main[data-wa-custom-wallpaper="active"] [data-wa-cw-transparent-bg="1"],
+#main[data-wa-custom-wallpaper="active"] > footer {
   background-color: transparent !important;
+  background-image: none !important;
 }
 
 /* Hide WhatsApp's own doodle/colour layer only when a custom wallpaper is active */
