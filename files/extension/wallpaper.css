@@ -8,10 +8,15 @@
 
 /* Hide WhatsApp's own doodle/colour layer only when a custom wallpaper is active */
 #main[data-wa-custom-wallpaper="active"] [data-asset-chat-background-light],
-#main[data-wa-custom-wallpaper="active"] [data-asset-chat-background-dark] {
+#main[data-wa-custom-wallpaper="active"] [data-asset-chat-background-dark],
+#main[data-wa-custom-wallpaper="active"] [data-asset-chat-background-light]::before,
+#main[data-wa-custom-wallpaper="active"] [data-asset-chat-background-dark]::before,
+#main[data-wa-custom-wallpaper="active"] [data-wa-cw-hidden-bg="1"] {
+  display: none !important;
   background-image: none !important;
   background-color: transparent !important;
   opacity: 0 !important;
+  visibility: hidden !important;
 }
 
 /* In-chat wallpaper button & popover */

@@ -80,6 +80,28 @@
     return Boolean(fileConfig.default);
   }
 
+  function syncDoodleLayerVisibility(main, hide) {
+    if (!hide) {
+      main.querySelectorAll('[data-wa-cw-hidden-bg="1"]').forEach((el) => {
+        el.removeAttribute('data-wa-cw-hidden-bg');
+      });
+      return;
+    }
+
+    const candidates = main.querySelectorAll('div');
+    for (const el of candidates) {
+      if (el.closest('header, footer, [data-testid="msg-container"], [role="row"]')) continue;
+      if (el.hasAttribute('data-asset-chat-background-light') || el.hasAttribute('data-asset-chat-background-dark')) {
+        el.setAttribute('data-wa-cw-hidden-bg', '1');
+        continue;
+      }
+      const bgImg = el.style.backgroundImage || window.getComputedStyle(el).backgroundImage;
+      if (bgImg && bgImg !== 'none' && bgImg.includes('url(') && el.children.length === 0) {
+        el.setAttribute('data-wa-cw-hidden-bg', '1');
+      }
+    }
+  }
+
   function applyWallpaper() {
     const main = document.querySelector('#main');
     if (!main) return;
@@ -90,20 +112,62 @@
     if (url) {
       const fit = FIT_MODES[storedConfig.fitMode] || FIT_MODES.cover;
       main.setAttribute('data-wa-custom-wallpaper', 'active');
-      main.style.setProperty('--wa-custom-wallpaper', `url("${url}")`);
-      main.style.setProperty('--wa-custom-wallpaper-size', fit.size);
-      main.style.setProperty('--wa-custom-wallpaper-repeat', fit.repeat);
+      main.style.setProperty('background-image', `url("${url}")`, 'important');
+      main.style.setProperty('background-size', fit.size, 'important');
+      main.style.setProperty('background-repeat', fit.repeat, 'important');
+      main.style.setProperty('background-position', 'center', 'important');
+      syncDoodleLayerVisibility(main, true);
     } else {
       main.removeAttribute('data-wa-custom-wallpaper');
-      main.style.removeProperty('--wa-custom-wallpaper');
-      main.style.removeProperty('--wa-custom-wallpaper-size');
-      main.style.removeProperty('--wa-custom-wallpaper-repeat');
+      main.style.removeProperty('background-image');
+      main.style.removeProperty('background-size');
+      main.style.removeProperty('background-repeat');
+      main.style.removeProperty('background-position');
+      syncDoodleLayerVisibility(main, false);
     }
   }
 
   function saveStoredConfig() {
     return new Promise((resolve) => {
-      chrome.storage.local.set({ [STORAGE_KEY]: storedConfig }, resolve);
+      chrome.storage.local.set({ [STORAGE_KEY]: storedConfig }, () => {
+        if (chrome.runtime.lastError) {
+          console.error('[WhatsApp Custom Wallpaper] Failed to save:', chrome.runtime.lastError.message);
+          alert('Could not save wallpaper: ' + chrome.runtime.lastError.message);
+          resolve(false);
+          return;
+        }
+        resolve(true);
+      });
+    });
+  }
+
+  function optimizeDataUrlIfNeeded(dataUrl) {
+    // Keep smaller images untouched; downscale very large images so storage/CSS never fail
+    if (dataUrl.length <= 1800000) return Promise.resolve(dataUrl);
+
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const maxDim = 2560;
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          const scale = Math.min(maxDim / width, maxDim / height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(dataUrl);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.9));
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
     });
   }
 
@@ -122,7 +186,13 @@
           return;
         }
         const reader = new FileReader();
-        reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : null);
+        reader.onload = async () => {
+          if (typeof reader.result !== 'string') {
+            resolve(null);
+            return;
+          }
+          resolve(await optimizeDataUrlIfNeeded(reader.result));
+        };
         reader.onerror = () => resolve(null);
         reader.readAsDataURL(file);
       });
