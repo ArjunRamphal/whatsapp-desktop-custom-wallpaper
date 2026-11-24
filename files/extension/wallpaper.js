@@ -80,20 +80,20 @@
     return Boolean(fileConfig.default);
   }
 
-  function hasUrlBgImage(el) {
-    const own = el.style.backgroundImage || window.getComputedStyle(el).backgroundImage;
-    if (own && own !== 'none' && own.includes('url(')) return true;
-    const before = window.getComputedStyle(el, '::before').backgroundImage;
-    if (before && before !== 'none' && before.includes('url(')) return true;
-    const after = window.getComputedStyle(el, '::after').backgroundImage;
-    if (after && after !== 'none' && after.includes('url(')) return true;
-    return false;
+  function hasPatternImage(style) {
+    if (!style) return false;
+    const props = [style.backgroundImage, style.maskImage, style.webkitMaskImage];
+    return props.some((val) => val && val !== 'none' && val.includes('url('));
   }
 
   function syncDoodleLayerVisibility(main, hide) {
     if (!hide) {
+      main.removeAttribute('data-wa-cw-hide-pseudo');
       main.querySelectorAll('[data-wa-cw-hidden-bg="1"]').forEach((el) => {
         el.removeAttribute('data-wa-cw-hidden-bg');
+      });
+      main.querySelectorAll('[data-wa-cw-hide-pseudo="1"]').forEach((el) => {
+        el.removeAttribute('data-wa-cw-hide-pseudo');
       });
       main.querySelectorAll('[data-wa-cw-transparent-bg="1"]').forEach((el) => {
         el.removeAttribute('data-wa-cw-transparent-bg');
@@ -101,42 +101,52 @@
       return;
     }
 
+    if (
+      hasPatternImage(window.getComputedStyle(main, '::before')) ||
+      hasPatternImage(window.getComputedStyle(main, '::after'))
+    ) {
+      main.setAttribute('data-wa-cw-hide-pseudo', '1');
+    }
+
     const candidates = main.querySelectorAll('div');
     for (const el of candidates) {
-      if (el.closest('header, footer, [data-testid="msg-container"], [role="row"]')) continue;
+      if (el.closest('header, [data-testid="msg-container"], [role="row"]')) continue;
 
       if (el.hasAttribute('data-asset-chat-background-light') || el.hasAttribute('data-asset-chat-background-dark')) {
         el.setAttribute('data-wa-cw-hidden-bg', '1');
         continue;
       }
 
+      const ownStyle = window.getComputedStyle(el);
+      const beforeHasPattern = hasPatternImage(window.getComputedStyle(el, '::before'));
+      const afterHasPattern = hasPatternImage(window.getComputedStyle(el, '::after'));
+
       const isDecorativeOnly =
         el.innerText.trim() === '' &&
-        !el.querySelector('header, footer, img, video, canvas, button, input, [role="row"], [data-testid="msg-container"]');
+        !el.querySelector(
+          'header, footer, img, video, canvas, button, input, [contenteditable], [role="row"], [data-testid="msg-container"]'
+        );
 
-      if (isDecorativeOnly && hasUrlBgImage(el)) {
+      if (isDecorativeOnly && (hasPatternImage(ownStyle) || beforeHasPattern || afterHasPattern)) {
         el.setAttribute('data-wa-cw-hidden-bg', '1');
         continue;
       }
 
+      if (beforeHasPattern || afterHasPattern) {
+        el.setAttribute('data-wa-cw-hide-pseudo', '1');
+      }
+
       // Clear semi-transparent/opaque background-color on chat-body wrappers so custom wallpaper isn't dimmed
-      if (el.querySelector('[role="application"], [data-testid="conversation-panel-messages"], [role="row"]')) {
-        const bg = window.getComputedStyle(el).backgroundColor;
+      if (
+        !el.closest('footer') &&
+        el.querySelector('[role="application"], [data-testid="conversation-panel-messages"], [role="row"]')
+      ) {
+        const bg = ownStyle.backgroundColor;
         if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
           el.setAttribute('data-wa-cw-transparent-bg', '1');
         }
       }
     }
-  }
-
-  function getWallpaperTarget(main) {
-    for (const child of main.children) {
-      if (child.tagName === 'HEADER' || child.tagName === 'FOOTER') continue;
-      if (child.querySelector('[role="row"], [role="application"], [data-testid="conversation-panel-messages"]')) {
-        return child;
-      }
-    }
-    return main;
   }
 
   function clearBgStyles(el) {
@@ -153,21 +163,18 @@
 
     const chatName = getActiveChatName();
     const url = resolveWallpaperUrl(chatName);
-    const target = getWallpaperTarget(main);
 
     if (url) {
       const fit = FIT_MODES[storedConfig.fitMode] || FIT_MODES.cover;
-      if (target !== main) clearBgStyles(main);
       main.setAttribute('data-wa-custom-wallpaper', 'active');
-      target.style.setProperty('background-image', `url("${url}")`, 'important');
-      target.style.setProperty('background-size', fit.size, 'important');
-      target.style.setProperty('background-repeat', fit.repeat, 'important');
-      target.style.setProperty('background-position', 'center', 'important');
+      main.style.setProperty('background-image', `url("${url}")`, 'important');
+      main.style.setProperty('background-size', fit.size, 'important');
+      main.style.setProperty('background-repeat', fit.repeat, 'important');
+      main.style.setProperty('background-position', 'center', 'important');
       syncDoodleLayerVisibility(main, true);
     } else {
       main.removeAttribute('data-wa-custom-wallpaper');
       clearBgStyles(main);
-      if (target !== main) clearBgStyles(target);
       syncDoodleLayerVisibility(main, false);
     }
   }

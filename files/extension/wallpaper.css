@@ -3,9 +3,11 @@
   background-color: #0b141a !important;
 }
 
-/* Make intermediate chat wrappers transparent so the custom wallpaper isn't dimmed */
-#main[data-wa-custom-wallpaper="active"] [data-wa-cw-transparent-bg="1"] {
+/* Make intermediate chat wrappers and outer footer transparent so the wallpaper continues behind the input bar */
+#main[data-wa-custom-wallpaper="active"] [data-wa-cw-transparent-bg="1"],
+#main[data-wa-custom-wallpaper="active"] > footer {
   background-color: transparent !important;
+  background-image: none !important;
 }
 
 /* Hide WhatsApp's own doodle/colour layer only when a custom wallpaper is active */
@@ -18,9 +20,24 @@
 #main[data-wa-custom-wallpaper="active"] [data-wa-cw-hidden-bg="1"]::after {
   display: none !important;
   background-image: none !important;
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
   background-color: transparent !important;
   opacity: 0 !important;
   visibility: hidden !important;
+}
+
+/* Hide doodle pseudo-elements without hiding wrapper containers that hold chat content */
+#main[data-wa-custom-wallpaper="active"][data-wa-cw-hide-pseudo="1"]::before,
+#main[data-wa-custom-wallpaper="active"][data-wa-cw-hide-pseudo="1"]::after,
+#main[data-wa-custom-wallpaper="active"] [data-wa-cw-hide-pseudo="1"]::before,
+#main[data-wa-custom-wallpaper="active"] [data-wa-cw-hide-pseudo="1"]::after {
+  display: none !important;
+  content: none !important;
+  background-image: none !important;
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
+  opacity: 0 !important;
 }
 
 /* In-chat wallpaper button & popover */
